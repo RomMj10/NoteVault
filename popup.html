@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NoteVault</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div id="setup-screen" class="screen hidden">
+    <div class="setup-inner">
+      <div class="brand">
+        <div class="brand-mark">N</div>
+        <div class="brand-text">NoteVault</div>
+        <p class="brand-sub">Your private editorial space.</p>
+      </div>
+      <div class="setup-fields">
+        <label class="field-label">Firebase Project ID</label>
+        <input type="text" id="fb-project-id" class="field" placeholder="my-project-abc12" />
+        <label class="field-label">Firebase Web API Key</label>
+        <input type="text" id="fb-api-key" class="field" placeholder="AIzaSy…" />
+        <label class="field-label">Cloudinary Cloud Name <span class="optional">optional — for images</span></label>
+        <input type="text" id="cl-cloud-name" class="field" placeholder="my-cloud" />
+        <label class="field-label">Cloudinary Upload Preset <span class="optional">unsigned</span></label>
+        <input type="text" id="cl-upload-preset" class="field" placeholder="my_preset" />
+        <p class="setup-hint">Enable Firestore Database in Firebase Console first (test mode is fine).</p>
+        <button id="save-config-btn" class="btn-save">Connect →</button>
+      </div>
+    </div>
+  </div>
+  <div id="app-screen" class="screen hidden">
+
+    <header class="hdr">
+      <span class="hdr-brand">NoteVault</span>
+      <div class="hdr-actions">
+        <button id="new-note-btn" class="hdr-btn" title="New note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button id="settings-btn" class="hdr-btn" title="Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="view-notes" class="view">
+      <div class="search-bar">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Search notes…" />
+        <select id="sort-select" class="sort-select">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="title">A–Z</option>
+        </select>
+      </div>
+      <div id="notes-list" class="notes-list"></div>
+    </div>
+
+    <div id="view-compose" class="view hidden">
+      <div class="compose-wrap">
+        <div class="compose-toolbar">
+          <button id="back-btn" class="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Notes
+          </button>
+          <button id="save-note-btn" class="btn-post">Post</button>
+        </div>
+
+        <div class="paste-hint" id="paste-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Paste images directly into the note
+        </div>
+
+        <div id="attach-previews" class="attach-previews"></div>
+
+        <textarea id="note-body" class="note-body" placeholder="What's on your mind…&#10;&#10;Paste an image with Ctrl+V / ⌘V"></textarea>
+
+        <div class="tags-area">
+          <div id="tags-list" class="tags-list"></div>
+          <input type="text" id="tag-input" class="tag-input" placeholder="# add tag" />
+        </div>
+
+        <div id="toast" class="toast hidden"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="note-modal" class="modal hidden">
+    <div id="modal-backdrop" class="modal-bd"></div>
+    <div class="modal-sheet">
+      <div class="modal-drag-handle"></div>
+      <div class="modal-hdr">
+        <span id="modal-date" class="modal-date"></span>
+        <button id="close-modal-btn" class="hdr-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+      <div class="modal-foot">
+        <button id="delete-note-btn" class="btn-delete">Delete note</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

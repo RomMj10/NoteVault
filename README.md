@@ -6,7 +6,7 @@
 
 <h1>NoteVault</h1>
 
-<p>A dark, editorial note-taking extension for Firefox and Zen Browser.<br />
+<p>A note-taking extension for Firefox.<br />
 Capture thoughts, paste images, tag and search — all synced to your own Firebase.</p>
 
 <br />
@@ -38,8 +38,6 @@ Your notes are stored in **your own** Firebase Firestore project. No shared serv
 - **Tags** — type a tag and press `Enter` to organize notes, searchable
 - **Search & sort** — filter across title, body, and tags in real time; sort by newest, oldest, or alphabetical
 - **Your own storage** — Firebase Firestore for text (free up to 1 GB), Cloudinary for images (free up to 25 GB)
-- **Dark editorial design** — warm ink-on-paper palette built for focused writing
-- **Works in Zen Browser** — Zen is Firefox-based; the extension loads identically
 
 ---
 
@@ -59,7 +57,7 @@ cd notevault
 
 ### 2. Load the extension
 
-**Firefox / Zen Browser:**
+**Firefox / Other browser:**
 
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on…**
@@ -152,5 +150,5 @@ MIT — do whatever you want with it.
 ---
 
 <div align="center">
-  <sub>Built for Firefox and Zen Browser &nbsp;·&nbsp; Stores your data in your own cloud &nbsp;·&nbsp; No subscriptions</sub>
+  <sub>Built for Firefox &nbsp;·&nbsp; Stores your data in your own cloud &nbsp;·&nbsp; No subscriptions</sub>
 </div>

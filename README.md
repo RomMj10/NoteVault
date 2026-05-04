@@ -25,7 +25,7 @@ Capture thoughts, paste images, tag and search — all synced to your own Fireba
 
 ## Overview
 
-NoteVault is a minimal, fast browser extension built for writers, researchers, and anyone who thinks in fragments. It lives in your toolbar and gets out of your way — open it, write, paste a screenshot, tag it, close it.
+NoteVault is a minimal, fast browser extension built for writers, researchers, and anyone who thinks in fragments. It lives in your toolbar and gets out of your way - open it, write, paste a screenshot, tag it, close it.
 
 Your notes are stored in **your own** Firebase Firestore project. No shared server, no subscription, no lock-in. Images are uploaded to your own Cloudinary account. Free tiers on both cover most personal use indefinitely.
 
@@ -99,7 +99,7 @@ Only needed if you want to attach images to notes.
 
 ## Firestore Security Rules
 
-After setup, update your Firestore rules from the Firebase Console under **Firestore → Rules**. The default test mode rules expire — replace them with:
+After setup, update your Firestore rules from the Firebase Console under **Firestore → Rules**. The default test mode rules expire, replace them with:
 
 ```
 rules_version = '2';

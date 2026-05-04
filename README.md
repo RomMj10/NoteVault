@@ -34,7 +34,7 @@ Your notes are stored in **your own** Firebase Firestore project. No shared serv
 ## Features
 
 - **Instant capture** — open the popup and start writing immediately, notes list loads first if you already have notes
-- **Paste images** — paste screenshots or copied images directly into the text area with `Ctrl+V` / `⌘V`, no file picker needed
+- **Paste images** — paste screenshots or copied images directly into the text area with `Ctrl+V` / `⌘+V`, no file picker needed
 - **Tags** — type a tag and press `Enter` to organize notes, searchable
 - **Search & sort** — filter across title, body, and tags in real time; sort by newest, oldest, or alphabetical
 - **Your own storage** — Firebase Firestore for text (free up to 1 GB), Cloudinary for images (free up to 25 GB)

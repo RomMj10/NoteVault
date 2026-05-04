@@ -43,6 +43,16 @@ Your notes are stored in **your own** Firebase Firestore project. No shared serv
 
 ## Screenshots
 
+Once installed the NoteVault should appear at the toolbar like from this screenshot, I am using Zen browser for example. 
+<img width="782" height="409" alt="image" src="https://github.com/user-attachments/assets/96aed881-adfa-489e-bc3d-66660309c72d" />
+
+
+<img width="783" height="600" alt="image" src="https://github.com/user-attachments/assets/df20c305-d175-4fd2-b8e3-af135d6a3421" />
+
+<img width="782" height="605" alt="image" src="https://github.com/user-attachments/assets/b18a49d6-acf5-46c6-97c4-2408d285f3df" />
+
+<img width="782" height="652" alt="image" src="https://github.com/user-attachments/assets/11985ffc-31f8-4bb8-9cbd-4d467268b32d" />
+
 
 ---
 

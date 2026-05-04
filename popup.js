@@ -8,6 +8,7 @@ let notes  = [];
 let pendingImages = []; // {dataUrl, blob}
 let tags   = [];
 let currentNoteId = null;
+let editNoteId = null;
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -69,21 +70,21 @@ function showView(name) {
 
 
 function bindEvents() {
-  //save
-  $("save-config-btn").addEventListener("click", async () => {
-    const fbProjectId    = $("fb-project-id").value.trim();
-    const fbApiKey       = $("fb-api-key").value.trim();
-    const clCloudName    = $("cl-cloud-name").value.trim();
-    const clUploadPreset = $("cl-upload-preset").value.trim();
-    if (!fbProjectId || !fbApiKey) { alert("Firebase Project ID and API Key are required."); return; }
-    config = { fbProjectId, fbApiKey, clCloudName, clUploadPreset };
-    try {
-      await saveConfig(config);
-      showApp();
-      await fetchNotes();
-      renderNotes();
-    } catch(e) { alert("Config error: " + e.message); }
-  });
+//save
+   $("save-config-btn").addEventListener("click", async () => {
+     const fbProjectId    = $("fb-project-id").value.trim();
+     const fbApiKey       = $("fb-api-key").value.trim();
+     const clCloudName    = $("cl-cloud-name").value.trim();
+     const clUploadPreset = $("cl-upload-preset").value.trim();
+     if (!fbProjectId || !fbApiKey) { alert("Firebase Project ID and API Key are required."); return; }
+     config = { fbProjectId, fbApiKey, clCloudName, clUploadPreset };
+     try {
+       await saveConfig(config);
+       showApp();
+       await fetchNotes();
+       renderNotes();
+     } catch(e) { alert("Config error: " + e.message); }
+   });
 
   //Header btn
   $("settings-btn").addEventListener("click", showSetup);
@@ -136,9 +137,10 @@ function bindEvents() {
     });
   });
 
-  $("close-modal-btn").addEventListener("click", closeModal);
-  $("modal-backdrop").addEventListener("click", closeModal);
-  $("delete-note-btn").addEventListener("click", deleteCurrentNote);
+$("close-modal-btn").addEventListener("click", closeModal);
+   $("modal-backdrop").addEventListener("click", closeModal);
+   $("delete-note-btn").addEventListener("click", deleteCurrentNote);
+   $("edit-note-btn").addEventListener("click", editCurrentNote);
 }
 
 
@@ -149,6 +151,8 @@ function resetCompose() {
   renderPreviews();
   renderTagChips();
   $("toast").classList.add("hidden");
+  editNoteId = null;
+  $("save-note-btn").textContent = "Post";
 }
 
 function renderPreviews() {
@@ -203,11 +207,21 @@ async function saveNote() {
 
     const lines = body.split("\n");
     const title = lines[0].slice(0, 80) || "Untitled";
-    const note = { title, body, tags: [...tags], imageUrls, createdAt: new Date().toISOString() };
-    const savedId = await firestoreCreate(note);
-    note.id = savedId;
-    notes.unshift(note);
-    showToast("Saved ✓", "success");
+    
+    if (editNoteId) {
+      const updatedNote = { title, body, tags: [...tags], imageUrls, createdAt: notes.find(n => n.id === editNoteId)?.createdAt || new Date().toISOString() };
+      await firestoreUpdate(editNoteId, updatedNote);
+      const idx = notes.findIndex(n => n.id === editNoteId);
+      if (idx >= 0) notes[idx] = { ...updatedNote, id: editNoteId };
+      showToast("Updated ✓", "success");
+      editNoteId = null;
+    } else {
+      const note = { title, body, tags: [...tags], imageUrls, createdAt: new Date().toISOString() };
+      const savedId = await firestoreCreate(note);
+      note.id = savedId;
+      notes.unshift(note);
+      showToast("Saved ✓", "success");
+    }
     setTimeout(() => { showView("notes"); renderNotes(); }, 900);
   } catch(err) {
     console.error("Save:", err);
@@ -219,7 +233,7 @@ async function saveNote() {
 function setBusy(busy) {
   const btn = $("save-note-btn");
   btn.disabled = busy;
-  btn.textContent = busy ? "Saving…" : "Post";
+  btn.textContent = busy ? "Saving…" : (editNoteId ? "Update" : "Post");
 }
 
 //Firestore REST API calls
@@ -243,6 +257,13 @@ async function firestoreList() {
 async function firestoreDelete(id) {
   const res = await fetch(`${fbBase()}/${id}?key=${config.fbApiKey}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`Delete failed ${res.status}`);
+}
+async function firestoreUpdate(id, note) {
+  const res = await fetch(`${fbBase()}/${id}?key=${config.fbApiKey}&updateMask.fieldPaths=title&updateMask.fieldPaths=body&updateMask.fieldPaths=tags&updateMask.fieldPaths=imageUrls`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(toFS(note))
+  });
+  if (!res.ok) throw new Error(`Update failed ${res.status}`);
 }
 function toFS(n) {
   return { fields: {
@@ -348,6 +369,18 @@ async function deleteCurrentNote() {
     renderNotes();
     showView("notes");
   } catch(e) { alert("Delete failed: " + e.message); }
+}
+function editCurrentNote() {
+  const note = notes.find(n => n.id === currentNoteId);
+  if (!note) return;
+  currentNoteId = null;
+  closeModal();
+  $("note-body").value = note.body;
+  tags = [...note.tags];
+  renderTagChips();
+  editNoteId = note.id;
+  $("save-note-btn").textContent = "Update";
+  showView("compose");
 }
 
 

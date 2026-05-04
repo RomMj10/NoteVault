@@ -5,28 +5,47 @@ const $ = id => document.getElementById(id);
 
 let config = {};
 let notes  = [];
-let pendingImages = []; // {dataUrl, blob}
+let pendingImages = [];
 let tags   = [];
 let currentNoteId = null;
 let editNoteId = null;
+let pageAttach = { url: "", title: "" };
 
 
 document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    config = await loadConfig();
-    if (config && config.fbProjectId && config.fbApiKey) {
-      showApp();
-      await fetchNotes();
-      renderNotes();
-    } else {
+    try {
+      config = await loadConfig();
+      if (config && config.fbProjectId && config.fbApiKey) {
+        showApp();
+        await fetchCurrentPageUrl();
+        await fetchNotes();
+        renderNotes();
+      } else {
+        showSetup();
+      }
+    } catch(e) {
+      console.error("Init:", e);
       showSetup();
     }
-  } catch(e) {
-    console.error("Init:", e);
-    showSetup();
+    bindEvents();
+  });
+
+  async function fetchCurrentPageUrl() {
+    try {
+      const tabs = await new Promise((res, rej) => {
+        ext.tabs.query({ active: true, currentWindow: true }, tabs => {
+          if (ext.runtime.lastError) rej(ext.runtime.lastError);
+          else res(tabs);
+        });
+      });
+      if (tabs && tabs[0]) {
+        pageAttach = { url: tabs[0].url, title: tabs[0].title };
+      }
+    } catch(e) {
+      console.warn("Could not get current page URL:", e);
+      pageAttach = { url: "", title: "" };
+    }
   }
-  bindEvents();
-});
 
 //Storage
 function loadConfig() {
@@ -86,12 +105,27 @@ function bindEvents() {
      } catch(e) { alert("Config error: " + e.message); }
    });
 
-  //Header btn
-  $("settings-btn").addEventListener("click", showSetup);
-  $("new-note-btn").addEventListener("click", () => {
-    resetCompose();
-    showView("compose");
-  });
+//Header btn
+   $("settings-btn").addEventListener("click", showSetup);
+   $("new-note-btn").addEventListener("click", async () => {
+     resetCompose();
+     pageAttach = { url: "", title: "" };
+     try {
+       const tabs = await new Promise((res, rej) => {
+         ext.tabs.query({ active: true, currentWindow: true }, tabs => {
+           if (ext.runtime.lastError) rej(ext.runtime.lastError);
+           else res(tabs);
+         });
+       });
+       if (tabs && tabs[0]) {
+         pageAttach = { url: tabs[0].url, title: tabs[0].title };
+         $("attach-toggle").checked = true;
+         $("page-info").textContent = `Attached to: ${pageAttach.title}`;
+         $("page-info").classList.remove("hidden");
+       }
+     } catch(e) { console.warn("Could not get tab info:", e); }
+     showView("compose");
+   });
 
   //Back btn
   $("back-btn").addEventListener("click", () => {
@@ -138,19 +172,27 @@ function bindEvents() {
   });
 
 $("close-modal-btn").addEventListener("click", closeModal);
-   $("modal-backdrop").addEventListener("click", closeModal);
-   $("delete-note-btn").addEventListener("click", deleteCurrentNote);
-   $("edit-note-btn").addEventListener("click", editCurrentNote);
-}
+    $("modal-backdrop").addEventListener("click", closeModal);
+    $("delete-note-btn").addEventListener("click", deleteCurrentNote);
+    $("edit-note-btn").addEventListener("click", editCurrentNote);
+    $("attach-toggle").addEventListener("change", (e) => {
+      if (!e.target.checked) {
+        pageAttach = { url: "", title: "" };
+        $("page-info").classList.add("hidden");
+      }
+    });
+  }
 
 
 function resetCompose() {
   $("note-body").value = "";
   pendingImages = [];
   tags = [];
+  pageAttach = { url: "", title: "" };
   renderPreviews();
   renderTagChips();
   $("toast").classList.add("hidden");
+  $("page-info").classList.add("hidden");
   editNoteId = null;
   $("save-note-btn").textContent = "Post";
 }
@@ -207,21 +249,26 @@ async function saveNote() {
 
     const lines = body.split("\n");
     const title = lines[0].slice(0, 80) || "Untitled";
+    const attachToggle = $("attach-toggle")?.checked || false;
+    const noteData = attachToggle && pageAttach.url ? {
+      title, body, tags: [...tags], imageUrls, createdAt: new Date().toISOString(),
+      pageUrl: pageAttach.url, pageTitle: pageAttach.title
+    } : { title, body, tags: [...tags], imageUrls, createdAt: new Date().toISOString() };
     
     if (editNoteId) {
-      const updatedNote = { title, body, tags: [...tags], imageUrls, createdAt: notes.find(n => n.id === editNoteId)?.createdAt || new Date().toISOString() };
+      const updatedNote = { ...noteData, createdAt: notes.find(n => n.id === editNoteId)?.createdAt || noteData.createdAt };
       await firestoreUpdate(editNoteId, updatedNote);
       const idx = notes.findIndex(n => n.id === editNoteId);
       if (idx >= 0) notes[idx] = { ...updatedNote, id: editNoteId };
       showToast("Updated ✓", "success");
       editNoteId = null;
     } else {
-      const note = { title, body, tags: [...tags], imageUrls, createdAt: new Date().toISOString() };
-      const savedId = await firestoreCreate(note);
-      note.id = savedId;
-      notes.unshift(note);
+      const savedId = await firestoreCreate(noteData);
+      noteData.id = savedId;
+      notes.unshift(noteData);
       showToast("Saved ✓", "success");
     }
+    ext.storage.local.set({ nvNotes_cache: notes });
     setTimeout(() => { showView("notes"); renderNotes(); }, 900);
   } catch(err) {
     console.error("Save:", err);
@@ -259,7 +306,7 @@ async function firestoreDelete(id) {
   if (!res.ok) throw new Error(`Delete failed ${res.status}`);
 }
 async function firestoreUpdate(id, note) {
-  const res = await fetch(`${fbBase()}/${id}?key=${config.fbApiKey}&updateMask.fieldPaths=title&updateMask.fieldPaths=body&updateMask.fieldPaths=tags&updateMask.fieldPaths=imageUrls`, {
+  const res = await fetch(`${fbBase()}/${id}?key=${config.fbApiKey}&updateMask.fieldPaths=title&updateMask.fieldPaths=body&updateMask.fieldPaths=tags&updateMask.fieldPaths=imageUrls&updateMask.fieldPaths=pageUrl&updateMask.fieldPaths=pageTitle`, {
     method: "PATCH", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(toFS(note))
   });
@@ -271,7 +318,9 @@ function toFS(n) {
     body:      { stringValue: n.body },
     tags:      { arrayValue: { values: (n.tags||[]).map(t=>({stringValue:t})) } },
     imageUrls: { arrayValue: { values: (n.imageUrls||[]).map(u=>({stringValue:u})) } },
-    createdAt: { stringValue: n.createdAt }
+    createdAt: { stringValue: n.createdAt },
+    pageUrl:   { stringValue: n.pageUrl || "" },
+    pageTitle: { stringValue: n.pageTitle || "" }
   }};
 }
 function fromFS(doc) {
@@ -282,11 +331,16 @@ function fromFS(doc) {
     body:      f.body?.stringValue  || "",
     tags:      (f.tags?.arrayValue?.values||[]).map(v=>v.stringValue),
     imageUrls: (f.imageUrls?.arrayValue?.values||[]).map(v=>v.stringValue),
-    createdAt: f.createdAt?.stringValue || ""
+    createdAt: f.createdAt?.stringValue || "",
+    pageUrl:   f.pageUrl?.stringValue || "",
+    pageTitle: f.pageTitle?.stringValue || ""
   };
 }
 async function fetchNotes() {
-  try { notes = await firestoreList(); } catch(e) { console.error("Fetch:", e); notes = []; }
+  try { 
+    notes = await firestoreList(); 
+    ext.storage.local.set({ nvNotes_cache: notes });
+  } catch(e) { console.error("Fetch:", e); notes = []; }
 }
 
 //Cloudinary upload
@@ -305,44 +359,83 @@ async function uploadImages(imgs) {
 
 //notes list
 function renderNotes() {
-  const q    = ($("search-input").value || "").toLowerCase();
-  const sort = $("sort-select").value;
-  const list = $("notes-list");
+    const q    = ($("search-input").value || "").toLowerCase();
+    const sort = $("sort-select").value;
+    const list = $("notes-list");
 
-  let filtered = notes.filter(n =>
-    n.title.toLowerCase().includes(q) ||
-    n.body.toLowerCase().includes(q) ||
-    (n.tags||[]).some(t => t.toLowerCase().includes(q))
-  );
-  if (sort === "newest")  filtered.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-  else if (sort === "oldest") filtered.sort((a,b) => a.createdAt.localeCompare(b.createdAt));
-  else filtered.sort((a,b) => a.title.localeCompare(b.title));
+    let filtered = notes.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      n.body.toLowerCase().includes(q) ||
+      (n.tags||[]).some(t => t.toLowerCase().includes(q))
+    );
+    if (sort === "newest")  filtered.sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+    else if (sort === "oldest") filtered.sort((a,b) => a.createdAt.localeCompare(b.createdAt));
+    else filtered.sort((a,b) => a.title.localeCompare(b.title));
 
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><p>${q ? "No notes match your search." : "No notes yet.<br>Hit + to start writing."}</p></div>`;
-    return;
+    // Current page highlight banner
+    if (pageAttach.url) {
+      const existingBanner = document.querySelector(".current-page-banner");
+      const currentCount = filtered.filter(n => n.pageUrl === pageAttach.url).length;
+      if (!existingBanner) {
+        const banner = document.createElement("div");
+        banner.className = "current-page-banner";
+        banner.innerHTML = `
+          <div class="current-page-icon">🔗</div>
+          <div class="current-page-text">
+            <span class="current-page-title">${escHtml(pageAttach.title || pageAttach.url)}</span>
+            <span class="current-page-count">${currentCount} note${currentCount === 1 ? '' : 's'} from this page</span>
+          </div>
+        `;
+        list.parentNode.insertBefore(banner, list);
+      } else {
+        existingBanner.querySelector(".current-page-title").textContent = pageAttach.title || pageAttach.url;
+        existingBanner.querySelector(".current-page-count").textContent = `${currentCount} note${currentCount === 1 ? '' : 's'} from this page`;
+      }
+    } else {
+      const existingBanner = document.querySelector(".current-page-banner");
+      if (existingBanner) existingBanner.remove();
+    }
+
+    if (!filtered.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><p>${q ? "No notes match your search." : "No notes yet.<br>Hit + to start writing."}</p></div>`;
+      return;
+    }
+
+    list.innerHTML = "";
+    filtered.forEach(note => {
+      const card = document.createElement("div");
+      const isCurrentPage = pageAttach.url && note.pageUrl === pageAttach.url;
+      card.className = `note-card${note.pageUrl ? ' has-page' : ''}${isCurrentPage ? ' current-page' : ''}`;
+      const tagBadges = (note.tags||[]).map(t => `<span class="badge">#${escHtml(t)}</span>`).join("");
+      const imgBadge  = (note.imageUrls||[]).length ? `<span class="badge img">🖼 ${note.imageUrls.length}</span>` : "";
+      const pageBadge = note.pageUrl ? `<span class="badge page">🔗</span>` : "";
+      if (isCurrentPage) {
+        card.innerHTML = `
+          <div class="note-card-left">
+            <span class="note-card-title">${escHtml(note.title)} <span class="current-page-label">● current page</span></span>
+            <span class="note-card-preview">${escHtml(note.body.replace(/\\n/g," "))}</span>
+          </div>
+          <div class="note-card-right">
+            <span class="note-card-date">${note.createdAt ? fmtDate(note.createdAt) : ""}</span>
+            <div class="note-card-badges">${tagBadges}${imgBadge}${pageBadge}</div>
+          </div>
+          <span class="note-card-arrow">★</span>`;
+      } else {
+        card.innerHTML = `
+          <div class="note-card-left">
+            <span class="note-card-title">${escHtml(note.title)}</span>
+            <span class="note-card-preview">${escHtml(note.body.replace(/\\n/g," "))}</span>
+          </div>
+          <div class="note-card-right">
+            <span class="note-card-date">${note.createdAt ? fmtDate(note.createdAt) : ""}</span>
+            <div class="note-card-badges">${tagBadges}${imgBadge}${pageBadge}</div>
+          </div>
+          <span class="note-card-arrow">›</span>`;
+      }
+      card.addEventListener("click", () => openModal(note));
+      list.appendChild(card);
+    });
   }
-
-  list.innerHTML = "";
-  filtered.forEach(note => {
-    const card = document.createElement("div");
-    card.className = "note-card";
-    const tagBadges = (note.tags||[]).map(t => `<span class="badge">#${escHtml(t)}</span>`).join("");
-    const imgBadge  = (note.imageUrls||[]).length ? `<span class="badge img">🖼 ${note.imageUrls.length}</span>` : "";
-    card.innerHTML = `
-      <div class="note-card-left">
-        <span class="note-card-title">${escHtml(note.title)}</span>
-        <span class="note-card-preview">${escHtml(note.body.replace(/\n/g," "))}</span>
-      </div>
-      <div class="note-card-right">
-        <span class="note-card-date">${note.createdAt ? fmtDate(note.createdAt) : ""}</span>
-        <div class="note-card-badges">${tagBadges}${imgBadge}</div>
-      </div>
-      <span class="note-card-arrow">›</span>`;
-    card.addEventListener("click", () => openModal(note));
-    list.appendChild(card);
-  });
-}
 
 
 function openModal(note) {

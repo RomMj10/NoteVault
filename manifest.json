@@ -34,7 +34,8 @@
   "permissions": [
     "storage",
     "https://firestore.googleapis.com/*",
-    "https://api.cloudinary.com/*"
+    "https://api.cloudinary.com/*",
+    "tabs"
   ],
   "browser_specific_settings": {
     "gecko": {

@@ -217,6 +217,112 @@ html, body {
   max-height: 490px;
 }
 
+/* Current page banner */
+.current-page-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  margin: 0 12px 4px;
+  background: linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.03) 100%);
+  border: 1px solid rgba(201,168,76,.25);
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--gold);
+}
+
+.current-page-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.current-page-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.current-page-title {
+  font-weight: 600;
+  color: var(--gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.current-page-count {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* Current page note card highlight */
+.note-card.current-page {
+  border-left: 2px solid var(--gold);
+  background: linear-gradient(90deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.04) 40%, transparent 100%);
+  box-shadow: 0 0 12px rgba(201,168,76,.08), inset 0 0 0 1px rgba(201,168,76,.08);
+  position: relative;
+}
+
+.note-card.current-page::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold) 0%, rgba(201,168,76,.4) 100%);
+  border-radius: 6px 0 0 6px;
+}
+
+.note-card.current-page:hover {
+  background: linear-gradient(90deg, rgba(201,168,76,.18) 0%, var(--paper-2) 40%, var(--paper-2) 100%);
+  box-shadow: 0 0 20px rgba(201,168,76,.12), inset 0 0 0 1px rgba(201,168,76,.12);
+}
+
+.current-page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(201,168,76,.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.note-card.current-page .note-card-arrow {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(201,168,76,.4);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: var(--ink-faint);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+}
+.current-page-banner + .empty-state {
+  padding: 40px 20px 60px;
+}
+.empty-icon { font-size: 28px; opacity: .5; }
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -245,6 +351,11 @@ html, body {
 }
 .note-card:hover { background: var(--paper-2); }
 .note-card:hover .note-card-arrow { opacity: 1; }
+.note-card.has-page {
+  border-left: 2px solid var(--gold);
+  background: linear-gradient(90deg, rgba(201,168,76,.05) 0%, transparent 30%);
+}
+.note-card.has-page:hover { background: linear-gradient(90deg, rgba(201,168,76,.08) 0%, var(--paper-2) 30%); }
 
 .note-card-left { flex: 1; min-width: 0; }
 .note-card-title {
@@ -286,6 +397,7 @@ html, body {
   background: var(--paper-2);
 }
 .badge.img { border-color: rgba(94,143,173,.3); color: var(--blue); }
+.badge.page { border-color: rgba(201,168,76,.4); color: var(--gold); background: rgba(201,168,76,.1); }
 .note-card-arrow {
   position: absolute;
   right: 6px; top: 50%;
@@ -423,6 +535,39 @@ html, body {
   border-top: 1px solid var(--rule);
   background: var(--paper-1);
 }
+
+.page-info {
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--blue);
+  background: rgba(94,143,173,.08);
+  border-bottom: 1px solid var(--rule);
+}
+
+.attach-toggle {
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-1);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+}
+
+.toggle-text {
+  user-select: none;
+}
+
 .tag-chip {
   display: inline-flex; align-items: center; gap: 3px;
   background: var(--paper-2);

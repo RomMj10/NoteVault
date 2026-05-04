@@ -2,8 +2,8 @@
   "manifest_version": 2,
   "name": "NoteVault",
   "version": "1.0.2",
-  "description": "Take notes and store them in the cloud.",
-  "content_security_policy": "script-src 'self'; img-src 'self' data: blob: https:; object-src 'self'",
+  "description": "Capture notes, images, and ideas directly in your browser and sync them securely across devices using cloud storage.",
+  "content_security_policy": "script-src 'self'; connect-src https://firestore.googleapis.com https://*.googleapis.com https://api.cloudinary.com; img-src 'self' data: blob: https:; object-src 'self'",
 
   "icons": {
     "16": "icons/icon16.png",
@@ -22,14 +22,11 @@
     }
   },
   "web_accessible_resources": [
-    "icons/*.png",
-    "popup.css",
-    "popup.js",
-    "popup.html"
+    "icons/*.png"
   ],
   "background": {
     "scripts": ["background.js"],
-    "persistent": false
+    "persistent": true
   },
   "permissions": [
     "storage",

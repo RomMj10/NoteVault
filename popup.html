@@ -15,6 +15,7 @@
         <p class="brand-sub">Your private editorial space.</p>
       </div>
       <div class="setup-fields">
+        <p class="setup-hint">Use your own Firebase/Cloudinary Credentials. Do not share it to others</p>
         <label class="field-label">Firebase Project ID</label>
         <input type="text" id="fb-project-id" class="field" placeholder="my-project-abc12" />
         <label class="field-label">Firebase Web API Key</label>
@@ -23,7 +24,6 @@
         <input type="text" id="cl-cloud-name" class="field" placeholder="my-cloud" />
         <label class="field-label">Cloudinary Upload Preset <span class="optional">unsigned</span></label>
         <input type="text" id="cl-upload-preset" class="field" placeholder="my_preset" />
-        <p class="setup-hint">Enable Firestore Database in Firebase Console first (test mode is fine).</p>
         <button id="save-config-btn" class="btn-save">Connect →</button>
       </div>
     </div>

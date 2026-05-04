@@ -112,7 +112,7 @@ service cloud.firestore {
 }
 ```
 
-For a personal-use extension this is fine. If you share your Firebase project with others, restrict access using Firebase Authentication.
+⚠️ These rules allow public access. Use only for personal projects. For shared or production use, configure authentication and restrict access.
 
 ---
 
@@ -147,9 +147,37 @@ NoteVault is entirely client-side. There is no backend, no proxy, no middleman.
 
 ## Privacy
 
-NoteVault does not collect any data. Your notes go directly from your browser to your Firebase project. Your images go directly from your browser to your Cloudinary account. The extension author has no access to either.
+### Data Handling
 
-You are responsible for your own Firebase and Cloudinary account security.
+The extension processes the following user-provided data:
+
+- Text notes created by the user
+- Optional images pasted into notes
+- Optional tags associated with notes
+
+###  Data Storage
+
+All data is stored using services configured by the user:
+
+- Text notes are sent directly from the browser to the user’s own Firebase Firestore project
+- Images are uploaded directly from the browser to the user’s own Cloudinary account
+
+The extension does not proxy, intercept, or store this data outside of these services.
+
+### Third-Party Services
+
+NoteVault interacts with the following third-party services:
+
+- Firebase Firestore (Google) for note storage
+- Cloudinary for image hosting
+
+Users are responsible for reviewing and complying with the privacy policies of these services.
+
+### Security Responsibility
+
+Users are responsible for:
+- Securing their Firebase and Cloudinary accounts
+- Configuring appropriate access rules (e.g., Firestore security rules)
 
 ---
 

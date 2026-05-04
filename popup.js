@@ -3,6 +3,17 @@
 const ext = (typeof browser !== "undefined") ? browser : chrome;
 const $ = id => document.getElementById(id);
 
+function normalizeUrl(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    u.hash = "";
+    u.search = "";
+    return u.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
 let config = {};
 let notes  = [];
 let pendingImages = [];
@@ -11,6 +22,9 @@ let currentNoteId = null;
 let editNoteId = null;
 let pageAttach = { url: "", title: "" };
 
+function isValidPage(url) {
+  return url && !url.startsWith("about:") && !url.startsWith("moz-extension:");
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -39,7 +53,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       });
       if (tabs && tabs[0]) {
-        pageAttach = { url: tabs[0].url, title: tabs[0].title };
+        pageAttach = {
+          url: normalizeUrl(tabs[0].url),
+          title: tabs[0].title
+        };
       }
     } catch(e) {
       console.warn("Could not get current page URL:", e);
@@ -283,7 +300,7 @@ function setBusy(busy) {
   btn.textContent = busy ? "Saving…" : (editNoteId ? "Update" : "Post");
 }
 
-//Firestore REST API calls
+//Firestore API calls
 function fbBase() {
   return `https://firestore.googleapis.com/v1/projects/${config.fbProjectId}/databases/(default)/documents/notes`;
 }
@@ -340,7 +357,14 @@ async function fetchNotes() {
   try { 
     notes = await firestoreList(); 
     ext.storage.local.set({ nvNotes_cache: notes });
-  } catch(e) { console.error("Fetch:", e); notes = []; }
+  } catch(e) { 
+    console.error("Fetch:", e); notes = []; 
+    console.warn("Fetch failed, using cache");
+    const cached = await new Promise(res => {
+      ext.storage.local.get("nvNotes_cache", r => res(r.nvNotes_cache || []));
+    });
+    notes = cached;
+  }
 }
 
 //Cloudinary upload

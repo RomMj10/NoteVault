@@ -3,6 +3,8 @@
   "name": "NoteVault",
   "version": "1.0.2",
   "description": "Take notes and store them in the cloud.",
+  "content_security_policy": "script-src 'self'; img-src 'self' data: blob: https:; object-src 'self'",
+
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -19,12 +21,20 @@
       "96": "icons/icon96.png"
     }
   },
+  "web_accessible_resources": [
+    "icons/*.png",
+    "popup.css",
+    "popup.js",
+    "popup.html"
+  ],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
   "permissions": [
-    "storage"
+    "storage",
+    "https://firestore.googleapis.com/*",
+    "https://api.cloudinary.com/*"
   ],
   "browser_specific_settings": {
     "gecko": {

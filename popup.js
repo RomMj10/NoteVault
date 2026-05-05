@@ -520,7 +520,12 @@ function openModal(note) {
   titleDiv.textContent = note.title;
   modalBody.appendChild(titleDiv);
   const bodyP = document.createElement("p");
-  bodyP.innerHTML = escHtml(note.body).replace(/\n/g, "<br/>");
+  note.body.split("\n").forEach((line, i, arr) => {
+    bodyP.appendChild(document.createTextNode(line));
+    if (i < arr.length - 1) bodyP.appendChild(document.createElement("br"));
+
+  });
+
   modalBody.appendChild(bodyP);
   if ((note.imageUrls||[]).length) {
     const imgDiv = document.createElement("div");

@@ -4,11 +4,6 @@
   "version": "1.0.2",
   "description": "Capture notes, images, and ideas directly in your browser and sync them securely across devices using cloud storage.",
   "content_security_policy": "script-src 'self'; connect-src https://firestore.googleapis.com https://*.googleapis.com https://api.cloudinary.com; img-src 'self' data: blob: https:; object-src 'self'",
-
-  "data_collection_permissions": {
-    "required": [],
-    "optional": []
-  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -41,7 +36,11 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "notevault@local.extension",
-      "strict_min_version": "109.0"
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": [],
+        "optional": []
+      }
     }
   }
 }

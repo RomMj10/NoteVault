@@ -403,13 +403,19 @@ function renderNotes() {
       if (!existingBanner) {
         const banner = document.createElement("div");
         banner.className = "current-page-banner";
-        banner.innerHTML = `
-          <div class="current-page-icon">🔗</div>
-          <div class="current-page-text">
-            <span class="current-page-title">${escHtml(pageAttach.title || pageAttach.url)}</span>
-            <span class="current-page-count">${currentCount} note${currentCount === 1 ? '' : 's'} from this page</span>
-          </div>
-        `;
+        const icon = document.createElement("div");
+        icon.className = "current-page-icon";
+        icon.textContent = "🔗";
+        const text = document.createElement("div");
+        text.className = "current-page-text";
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "current-page-title";
+        titleSpan.textContent = pageAttach.title || pageAttach.url;
+        const countSpan = document.createElement("span");
+        countSpan.className = "current-page-count";
+        countSpan.textContent = `${currentCount} note${currentCount === 1 ? '' : 's'} from this page`;
+        text.append(titleSpan, countSpan);
+        banner.append(icon, text);
         list.parentNode.insertBefore(banner, list);
       } else {
         existingBanner.querySelector(".current-page-title").textContent = pageAttach.title || pageAttach.url;
@@ -421,7 +427,21 @@ function renderNotes() {
     }
 
     if (!filtered.length) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><p>${q ? "No notes match your search." : "No notes yet.<br>Hit + to start writing."}</p></div>`;
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      const iconDiv = document.createElement("div");
+      iconDiv.className = "empty-icon";
+      iconDiv.textContent = "✦";
+      const p = document.createElement("p");
+      if (q) {
+        p.textContent = "No notes match your search.";
+      } else {
+        p.appendChild(document.createTextNode("No notes yet."));
+        p.appendChild(document.createElement("br"));
+        p.appendChild(document.createTextNode("Hit + to start writing."));
+      }
+      empty.append(iconDiv, p);
+      list.appendChild(empty);
       return;
     }
 
@@ -429,33 +449,53 @@ function renderNotes() {
     filtered.forEach(note => {
       const card = document.createElement("div");
       const isCurrentPage = pageAttach.url && note.pageUrl === pageAttach.url;
-      card.className = `note-card${note.pageUrl ? ' has-page' : ''}${isCurrentPage ? ' current-page' : ''}`;
-      const tagBadges = (note.tags||[]).map(t => `<span class="badge">#${escHtml(t)}</span>`).join("");
-      const imgBadge  = (note.imageUrls||[]).length ? `<span class="badge img">🖼 ${note.imageUrls.length}</span>` : "";
-      const pageBadge = note.pageUrl ? `<span class="badge page">🔗</span>` : "";
+      card.className = `note-card${isCurrentPage ? ' current-page' : ''}`;
+      const left = document.createElement("div");
+      left.className = "note-card-left";
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "note-card-title";
+      titleSpan.textContent = note.title;
       if (isCurrentPage) {
-        card.innerHTML = `
-          <div class="note-card-left">
-            <span class="note-card-title">${escHtml(note.title)} <span class="current-page-label">● current page</span></span>
-            <span class="note-card-preview">${escHtml(note.body.replace(/\\n/g," "))}</span>
-          </div>
-          <div class="note-card-right">
-            <span class="note-card-date">${note.createdAt ? fmtDate(note.createdAt) : ""}</span>
-            <div class="note-card-badges">${tagBadges}${imgBadge}${pageBadge}</div>
-          </div>
-          <span class="note-card-arrow">★</span>`;
-      } else {
-        card.innerHTML = `
-          <div class="note-card-left">
-            <span class="note-card-title">${escHtml(note.title)}</span>
-            <span class="note-card-preview">${escHtml(note.body.replace(/\\n/g," "))}</span>
-          </div>
-          <div class="note-card-right">
-            <span class="note-card-date">${note.createdAt ? fmtDate(note.createdAt) : ""}</span>
-            <div class="note-card-badges">${tagBadges}${imgBadge}${pageBadge}</div>
-          </div>
-          <span class="note-card-arrow">›</span>`;
+        const label = document.createElement("span");
+        label.className = "current-page-label";
+        label.textContent = "● current page";
+        titleSpan.appendChild(document.createTextNode(" "));
+        titleSpan.appendChild(label);
       }
+      const previewSpan = document.createElement("span");
+      previewSpan.className = "note-card-preview";
+      previewSpan.textContent = note.body.replace(/\n/g, " ");
+      left.append(titleSpan, previewSpan);
+      const right = document.createElement("div");
+      right.className = "note-card-right";
+      const dateSpan = document.createElement("span");
+      dateSpan.className = "note-card-date";
+      dateSpan.textContent = note.createdAt ? fmtDate(note.createdAt) : "";
+      const badgesDiv = document.createElement("div");
+      badgesDiv.className = "note-card-badges";
+      (note.tags || []).forEach(t => {
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = `#${t}`;
+        badgesDiv.appendChild(badge);
+      });
+      if ((note.imageUrls || []).length) {
+        const imgBadge = document.createElement("span");
+        imgBadge.className = "badge img";
+        imgBadge.textContent = `🖼 ${note.imageUrls.length}`;
+        badgesDiv.appendChild(imgBadge);
+      }
+      if (note.pageUrl) {
+        const pageBadge = document.createElement("span");
+        pageBadge.className = "badge page";
+        pageBadge.textContent = "🔗";
+        badgesDiv.appendChild(pageBadge);
+      }
+      right.append(dateSpan, badgesDiv);
+      const arrow = document.createElement("span");
+      arrow.className = "note-card-arrow";
+      arrow.textContent = isCurrentPage ? "★" : "›";
+      card.append(left, right, arrow);
       card.addEventListener("click", () => openModal(note));
       list.appendChild(card);
     });

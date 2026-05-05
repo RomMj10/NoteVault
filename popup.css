@@ -25,11 +25,12 @@ html, body {
   font-size: 13px;
   line-height: 1.5;
   overflow: hidden;
+  height: 100%;
+  max-height: 600px;
 }
 
 .hidden { display: none !important; }
 .screen { width: 400px; min-height: 560px; display: flex; flex-direction: column; }
-
 
 #setup-screen {
   background:
@@ -37,6 +38,14 @@ html, body {
     radial-gradient(ellipse 200px 300px at 10% 90%, rgba(94,143,173,.05) 0%, transparent 70%),
     var(--paper);
   justify-content: center;
+}
+
+#app-screen {
+  background: var(--paper);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
 }
 
 .setup-inner {
@@ -51,13 +60,14 @@ html, body {
   display: inline-flex;
   width: 52px; height: 52px;
   align-items: center; justify-content: center;
-  background: var(--gold);
+  background-image: url('/icons/icon96.png');
+  background-size: cover;
   color: var(--paper);
   font-size: 22px;
   font-weight: 800;
-  border-radius: 14px;
+  border-radius: 8px;
   margin-bottom: 12px;
-  box-shadow: 0 0 40px var(--gold-glow);
+  box-shadow: 0 0 48px var(--gold-glow);
 }
 .brand-text {
   font-size: 20px;
@@ -129,6 +139,9 @@ html, body {
 #app-screen {
   background: var(--paper);
   min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
 }
 
 .hdr {
@@ -169,7 +182,7 @@ html, body {
 
 
 
-.view { display: flex; flex-direction: column; flex: 1; }
+.view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .view.hidden { display: none; }
 
 
@@ -214,7 +227,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 490px;
+  min-height: 0;
 }
 
 /* Current page banner */
@@ -223,7 +236,7 @@ html, body {
   align-items: center;
   gap: 8px;
   padding: 7px 12px;
-  margin: 0 12px 4px;
+  margin: 12px 12px;
   background: linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.03) 100%);
   border: 1px solid rgba(201,168,76,.25);
   border-radius: 8px;

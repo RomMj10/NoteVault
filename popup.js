@@ -513,7 +513,36 @@ function openModal(note) {
   if ((note.tags||[]).length) {
     html += `<div class="modal-tags">${note.tags.map(t=>`<span class="tag-chip">#${escHtml(t)}</span>`).join("")}</div>`;
   }
-  $("modal-body").innerHTML = html
+  const modalBody = $("modal-body");
+  modalBody.innerHTML = "";
+  const titleDiv = document.createElement("div");
+  titleDiv.className = "modal-note-title";
+  titleDiv.textContent = note.title;
+  modalBody.appendChild(titleDiv);
+  const bodyP = document.createElement("p");
+  bodyP.innerHTML = escHtml(note.body).replace(/\n/g, "<br/>");
+  modalBody.appendChild(bodyP);
+  if ((note.imageUrls||[]).length) {
+    const imgDiv = document.createElement("div");
+    imgDiv.className = "modal-images";
+    note.imageUrls.forEach(u => {
+      const img = document.createElement("img");
+      img.src = u;
+      imgDiv.appendChild(img);
+    });
+    modalBody.appendChild(imgDiv);
+  }
+  if ((note.tags||[]).length) {
+    const tagsDiv = document.createElement("div");
+    tagsDiv.className = "modal-tags";
+    note.tags.forEach(t => {
+      const chip = document.createElement("span");
+      chip.className = "tag-chip";
+      chip.textContent = `#${t}`;
+      tagsDiv.appendChild(chip);
+    });
+    modalBody.appendChild(tagsDiv);
+  }
   $("note-modal").classList.remove("hidden");
 }
 function closeModal() { $("note-modal").classList.add("hidden"); currentNoteId = null; }

@@ -243,7 +243,7 @@ function renderTagChips() {
   tags.forEach((tag, i) => {
     const chip = document.createElement("span");
     chip.className = "tag-chip";
-    chip.innerHTML = `#${escHtml(tag)} <button>×</button>`;
+    chip.textContent = `#${escHtml(tag)} <button>×</button>`;
     chip.querySelector("button").addEventListener("click", () => { tags.splice(i, 1); renderTagChips(); });
     list.appendChild(chip);
   });
@@ -513,7 +513,7 @@ function openModal(note) {
   if ((note.tags||[]).length) {
     html += `<div class="modal-tags">${note.tags.map(t=>`<span class="tag-chip">#${escHtml(t)}</span>`).join("")}</div>`;
   }
-  $("modal-body").innerHTML = html;
+  $("modal-body").innerHTML = html
   $("note-modal").classList.remove("hidden");
 }
 function closeModal() { $("note-modal").classList.add("hidden"); currentNoteId = null; }

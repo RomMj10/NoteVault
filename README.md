@@ -16,7 +16,8 @@ Capture thoughts, paste images, tag and search — all synced to your own Fireba
 ![Firebase](https://img.shields.io/badge/Storage-Firebase_Firestore-FFCA28?logo=firebase&logoColor=black)
 ![Cloudinary](https://img.shields.io/badge/Images-Cloudinary-3448C5?logo=cloudinary&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-22c55e)
-
+<br />
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G0S3256X5R)
 <br />
 
 </div>

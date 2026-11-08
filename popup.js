@@ -3,6 +3,20 @@
 const ext = (typeof browser !== "undefined") ? browser : chrome;
 const $ = id => document.getElementById(id);
 
+function svgIcon(path, size = 14) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  el.setAttribute("width", size);
+  el.setAttribute("height", size);
+  el.setAttribute("viewBox", "0 0 24 24");
+  el.setAttribute("fill", "none");
+  el.setAttribute("stroke", "currentColor");
+  el.setAttribute("stroke-width", "2");
+  el.setAttribute("stroke-linecap", "round");
+  el.setAttribute("stroke-linejoin", "round");
+  el.innerHTML = path;
+  return el;
+}
+
 function normalizeUrl(rawUrl) {
   try {
     const u = new URL(rawUrl);
@@ -87,6 +101,15 @@ function saveConfig(cfg) {
 }
 
 //Screens
+function updateBackSetupBtn() {
+  const btn = $("back-setup-btn");
+  if (!btn) return;
+  const hasConfig = config && (config.fbProjectId || config.fbApiKey || config.clCloudName || config.clUploadPreset);
+  const fieldsFilled = ["fb-project-id","fb-api-key","cl-cloud-name","cl-upload-preset"]
+    .some(id => $(id).value.trim());
+  btn.disabled = !hasConfig && !fieldsFilled;
+  btn.title = btn.disabled ? "Nothing to go back to" : "Return to notes";
+}
 function showSetup() {
   $("setup-screen").classList.remove("hidden");
   $("app-screen").classList.add("hidden");
@@ -95,6 +118,7 @@ function showSetup() {
   if (config.clCloudName)    $("cl-cloud-name").value    = config.clCloudName;
   if (config.clUploadPreset) $("cl-upload-preset").value = config.clUploadPreset;
   switchTab(config.clCloudName || config.clUploadPreset ? "cloudinary" : "firebase");
+  updateBackSetupBtn();
 }
 
 function switchTab(name) {
@@ -131,6 +155,16 @@ function bindEvents() {
        await fetchNotes();
        renderNotes();
      } catch(e) { alert("Config error: " + e.message); }
+   });
+
+   $("back-setup-btn").addEventListener("click", () => {
+     if ($("back-setup-btn").disabled) return;
+     showApp();
+     renderNotes();
+   });
+
+   ["fb-project-id","fb-api-key","cl-cloud-name","cl-upload-preset"].forEach(id => {
+     $(id).addEventListener("input", updateBackSetupBtn);
    });
 
 //Header btn
@@ -200,7 +234,7 @@ function bindEvents() {
   });
 
 $("close-modal-btn").addEventListener("click", closeModal);
-    $("modal-backdrop").addEventListener("click", closeModal);
+    $("note-modal").addEventListener("click", e => { if (e.target.id === "note-modal") closeModal(); });
     $("delete-note-btn").addEventListener("click", deleteCurrentNote);
     $("edit-note-btn").addEventListener("click", editCurrentNote);
     $("attach-toggle").addEventListener("change", (e) => {
@@ -416,7 +450,7 @@ function renderNotes() {
         banner.className = "current-page-banner";
         const icon = document.createElement("div");
         icon.className = "current-page-icon";
-        icon.textContent = "🔗";
+        icon.appendChild(svgIcon(`<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 17l6-6a3 3 0 0 0 0-4.2L13 4"/>`));
         const text = document.createElement("div");
         text.className = "current-page-text";
         const titleSpan = document.createElement("span");
@@ -442,7 +476,7 @@ function renderNotes() {
       empty.className = "empty-state";
       const iconDiv = document.createElement("div");
       iconDiv.className = "empty-icon";
-      iconDiv.textContent = "✦";
+      iconDiv.appendChild(svgIcon(`<path d="M12 2l2.5 6 6.5.5-5 4.5 2 6.5L12 17l-6 2.5 2-6.5-5-4.5 6.5-.5z" stroke-width="1.8"/>`, 26));
       const p = document.createElement("p");
       if (q) {
         p.textContent = "No notes match your search.";
@@ -469,7 +503,8 @@ function renderNotes() {
       if (isCurrentPage) {
         const label = document.createElement("span");
         label.className = "current-page-label";
-        label.textContent = "● current page";
+        label.appendChild(svgIcon(`<circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>`, 9));
+        label.appendChild(document.createTextNode(" current page"));
         titleSpan.appendChild(document.createTextNode(" "));
         titleSpan.appendChild(label);
       }
@@ -493,19 +528,20 @@ function renderNotes() {
       if ((note.imageUrls || []).length) {
         const imgBadge = document.createElement("span");
         imgBadge.className = "badge img";
-        imgBadge.textContent = `🖼 ${note.imageUrls.length}`;
+        imgBadge.appendChild(svgIcon(`<rect x="3" y="3" width="18" height="14" rx="2"/><circle cx="8.5" cy="8.5" r="2.5"/><path d="M21 15l-5-5L5 20"/>`, 10));
+        imgBadge.appendChild(document.createTextNode(` ${note.imageUrls.length}`));
         badgesDiv.appendChild(imgBadge);
       }
       if (note.pageUrl) {
         const pageBadge = document.createElement("span");
         pageBadge.className = "badge page";
-        pageBadge.textContent = "🔗";
+        pageBadge.appendChild(svgIcon(`<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 17l6-6a3 3 0 0 0 0-4.2L13 4"/>`, 10));
         badgesDiv.appendChild(pageBadge);
       }
       right.append(dateSpan, badgesDiv);
       const arrow = document.createElement("span");
       arrow.className = "note-card-arrow";
-      arrow.textContent = isCurrentPage ? "★" : "›";
+      arrow.appendChild(svgIcon(isCurrentPage ? `<polygon points="12 3 21 12 12 21 3 12"/>` : `<polyline points="9 6 15 12 9 18"/>`, 14));
       card.append(left, right, arrow);
       card.addEventListener("click", () => openModal(note));
       list.appendChild(card);
@@ -530,6 +566,9 @@ function openModal(note) {
   titleDiv.className = "modal-note-title";
   titleDiv.textContent = note.title;
   modalBody.appendChild(titleDiv);
+  const rule = document.createElement("hr");
+  rule.className = "modal-rule";
+  modalBody.appendChild(rule);
   const bodyP = document.createElement("p");
   note.body.split("\n").forEach((line, i, arr) => {
     bodyP.appendChild(document.createTextNode(line));

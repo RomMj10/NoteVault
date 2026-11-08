@@ -94,6 +94,12 @@ function showSetup() {
   if (config.fbApiKey)       $("fb-api-key").value       = config.fbApiKey;
   if (config.clCloudName)    $("cl-cloud-name").value    = config.clCloudName;
   if (config.clUploadPreset) $("cl-upload-preset").value = config.clUploadPreset;
+  switchTab(config.clCloudName || config.clUploadPreset ? "cloudinary" : "firebase");
+}
+
+function switchTab(name) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.toggle("active", p.dataset.pane === name));
 }
 function showApp() {
   $("setup-screen").classList.add("hidden");
@@ -106,6 +112,11 @@ function showView(name) {
 
 
 function bindEvents() {
+//tabs
+   document.querySelectorAll(".tab-btn").forEach(btn => {
+     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+   });
+
 //save
    $("save-config-btn").addEventListener("click", async () => {
      const fbProjectId    = $("fb-project-id").value.trim();

@@ -139,8 +139,6 @@ html, body {
   line-height: 1.5;
   padding: 9px 11px;
   background: var(--paper-2);
-  border-radius: var(--r-md);
-  border-left: 2px solid var(--rose);
 }
 
 .btn-save {
@@ -180,10 +178,10 @@ html, body {
   padding: 12px;
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: color 150ms, background 150ms, opacity 150ms;
+  transition: color 150ms, background 150ms, opacity 150ms, transform 150ms;
 }
 
-.btn-back:hover:not(:disabled) { color: var(--ink); background: var(--paper); }
+.btn-back:hover:not(:disabled) { color: var(--ink); background: var(--paper); transform: translateY(-1px); }
 .btn-back:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ===================== APP SCREEN ===================== */
@@ -273,19 +271,20 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
   min-height: 0;
 }
 
 /* Current page banner */
 .current-page-banner {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 7px 12px;
-  margin: 12px 12px;
   background: linear-gradient(135deg, rgba(217,139,139,.12) 0%, rgba(217,139,139,.03) 100%);
   border: 1px solid rgba(217,139,139,.25);
   border-radius: 8px;
@@ -309,18 +308,10 @@ html, body {
 
 /* Current page note card highlight */
 .note-card.current-page {
-  border-left: 2px solid var(--rose);
+  border: 1px solid var(--rose);
   background: linear-gradient(90deg, rgba(217,139,139,.12) 0%, rgba(217,139,139,.04) 40%, transparent 100%);
   box-shadow: 0 0 12px rgba(217,139,139,.08), inset 0 0 0 1px rgba(217,139,139,.08);
   position: relative;
-}
-
-.note-card.current-page::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0; width: 3px;
-  background: linear-gradient(180deg, var(--rose) 0%, rgba(217,139,139,.4) 100%);
-  border-radius: 6px 0 0 6px;
 }
 
 .note-card.current-page:hover {
@@ -345,6 +336,7 @@ html, body {
 
 /* Empty state */
 .empty-state {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -362,21 +354,26 @@ html, body {
 
 /* Note cards */
 .note-card {
-  display: flex;
+  display: block;
   align-items: baseline;
   gap: 12px;
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--rule);
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
   cursor: pointer;
-  border-radius: 6px;
-  transition: background 120ms;
+  border-radius: 8px;
+  background: var(--paper);
+  max-width: 100%;
+  transition: background 120ms, box-shadow 120ms;
   position: relative;
 }
-.note-card:hover { background: var(--paper-2); }
-.note-card:hover .note-card-arrow { opacity: 1; }
+.note-card:hover { background: var(--paper-2); box-shadow: 0 2px 8px rgba(43,38,32,.06); }
+.note-card:hover .note-card-arrow { opacity: 0; }
+
+.note-card.tall { grid-row: span 2;}
+.note-card.wide { grid-column: span 2; }
+.note-card.big  { grid-row: span 2; grid-column: span 2; }
 
 .note-card.has-page {
-  border-left: 2px solid var(--rose);
   background: linear-gradient(90deg, rgba(217,139,139,.05) 0%, transparent 30%);
 }
 .note-card.has-page:hover { background: linear-gradient(90deg, rgba(217,139,139,.08) 0%, var(--paper-2) 30%); }
@@ -390,7 +387,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 }
 .note-card-preview {
   font-size: 11.5px;

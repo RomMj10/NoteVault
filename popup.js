@@ -494,7 +494,8 @@ function renderNotes() {
     filtered.forEach(note => {
       const card = document.createElement("div");
       const isCurrentPage = pageAttach.url && note.pageUrl === pageAttach.url;
-      card.className = `note-card${isCurrentPage ? ' current-page' : ''}`;
+      const bento = bentoSize(note);
+      card.className = `note-card${isCurrentPage ? ' current-page' : ''} ${bento}`;
       const left = document.createElement("div");
       left.className = "note-card-left";
       const titleSpan = document.createElement("span");
@@ -632,6 +633,18 @@ function showToast(msg, type = "success") {
   t.classList.remove("hidden");
   setTimeout(() => t.classList.add("hidden"), 3000);
 }
+function bentoSize(note) {
+  const imgs = (note.imageUrls || []).length;
+  const bodyLen = (note.body || "").trim().length;
+  const tags = (note.tags || []).length;
+  if (imgs >= 2) return "big";
+  if (imgs === 1) return "tall";
+  if (bodyLen > 220) return "tall";
+  if (tags >= 3) return "wide";
+  if (bodyLen > 90) return "wide";
+  return "";
+}
+
 function fmtDate(iso) {
   try { return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
   catch { return ""; }
